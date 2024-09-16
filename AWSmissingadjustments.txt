@@ -1,0 +1,147 @@
+
+EC2 Instance’a SSH ile Bağlanma (AWS Üzerinde)
+Eğer AWS EC2 instance’ını başarıyla oluşturdunuzsa, aşağıdaki adımlarla devam edebiliriz:
+
+Instance’ınıza SSH ile bağlanmak için komut şu şekilde olmalıdır:
+
+
+ssh -i "my-key.pem" ubuntu@<your-ec2-public-ip>
+my-key.pem: EC2 instance’ı oluştururken oluşturduğunuz key dosyasının adı.
+<your-ec2-public-ip>: AWS EC2 instance’ının public IP adresi.
+Eğer bu adımı başarıyla gerçekleştirdiyseniz, bir sonraki adıma geçelim.
+
+2. Jenkins Kurulumu
+EC2 üzerinde Jenkins'i kurmak için aşağıdaki adımları takip edeceğiz.
+
+Adım 1: Java 8'i Kurma
+Jenkins’in çalışabilmesi için Java’ya ihtiyacımız var. Bu nedenle EC2 üzerinde önce Java 8’i kuruyoruz:
+
+
+sudo apt update
+sudo apt install openjdk-8-jdk -y
+Adım 2: Jenkins’i Kurma
+Şimdi Jenkins paketini indirip kuracağız:
+
+Jenkins anahtarını ve depo bağlantısını ekleyin:
+
+
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+sudo apt update
+Jenkins’i yükleyin:
+
+
+sudo apt install jenkins -y
+Jenkins’i başlatın:
+
+
+sudo systemctl start jenkins
+Jenkins’i otomatik olarak başlatılacak şekilde ayarlayın:
+
+
+sudo systemctl enable jenkins
+Adım 3: Güvenlik Gruplarını Yapılandırma
+AWS EC2 instance'ınızda Jenkins'in çalışacağı 8080 portunu açmanız gerekiyor. Bunu AWS Management Console'dan yapabilirsiniz:
+
+EC2 Dashboard'a gidin.
+EC2 instance'ınızın Security Group ayarlarına gidin.
+Inbound Rules kısmında 8080 portunu açın (0.0.0.0/0 veya belirli bir IP adresine).
+Adım 4: Jenkins Web Arayüzüne Erişim
+Jenkins’i kurduktan sonra, web arayüzüne erişmek için tarayıcınızda şu URL'yi kullanın:
+
+
+http://<your-ec2-public-ip>:8080
+Adım 5: Jenkins İlk Admin Şifresi
+İlk kez Jenkins'i çalıştırdığınızda, sizden admin şifresini isteyecektir. Bu şifreyi almak için SSH ile bağlı olduğunuz terminalde şu komutu çalıştırın:
+
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+Bu şifreyi web arayüzüne girerek Jenkins’i başlatabilirsiniz.
+
+Adım 6: Jenkins Eklentileri ve Kullanıcı Hesabı
+Suggested Plugins seçeneğini seçerek gerekli eklentileri yükleyin.
+Bir admin hesabı oluşturun ve Jenkins’i kullanmaya başlayın.
+
+#########################################################################################
+
+
+/Users/ercan.kirbiyik/docker_python_test_project/Jenkinsfile
+Bu Jenkinsfile,
+ AWS üzerinde çalıştırmak için bazı ek ayarların yapılması gerekebilir.
+ AWS’de Jenkins Pipeline’ının sorunsuz çalışması için aşağıdaki eklemeleri ve düzenlemeleri yapmak faydalı olacaktır:
+
+### 1. **Python ve Docker'ın AWS EC2 Üzerinde Kurulu Olması**
+- AWS EC2 instance'ınızda **Python 3** ve **Docker** kurulu olmalıdır.
+Bu Jenkinsfile, Python scriptlerini çalıştırmak için Python’a, Docker konteynerlerini başlatmak için Docker'a ihtiyaç duyuyor.
+
+Kurulum adımları şu şekilde olabilir:
+
+#### Python 3 Kurulumu:
+EC2 instance’ınıza şu komutlarla Python 3 kurabilirsiniz:
+
+```
+sudo apt update
+sudo apt install python3 python3-pip -y
+```
+
+#### Docker Kurulumu:
+EC2 instance’ınıza Docker’ı şu komutlarla kurabilirsiniz:
+
+```
+sudo apt update
+sudo apt install docker.io -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+```
+
+**Not:** Jenkins ile Docker'ı kullanmak için Jenkins kullanıcısının Docker grubuna eklenmiş olduğundan emin olun.
+
+### 2. **Jenkins EC2 Üzerinde Çalışırken Docker İzinleri**
+Jenkins kullanıcısının Docker’ı çalıştırma yetkisi olup olmadığını kontrol edin. Eğer yoksa, Jenkins kullanıcısını Docker grubuna eklemeniz gerekir:
+
+```
+sudo usermod -aG docker jenkins
+```
+
+Jenkins servisini yeniden başlatarak değişikliklerin etkinleşmesini sağlayın:
+
+```
+sudo systemctl restart jenkins
+```
+
+### 3. **Docker ile Konteyner Başlatma**
+Bu Jenkinsfile, AWS EC2 üzerindeki Jenkins instance'ında **Docker** kullanarak Selenium Grid’i başlatacak. Ancak, Jenkins’in Docker konteynerlerini yönetebilmesi için Docker doğru şekilde yapılandırılmalı.
+
+Eğer Selenium Hub ve Chrome Node’ları AWS üzerinde çalıştırıyorsanız, Jenkinsfile’ın aşağıdaki bölümlerini gözden geçirmeniz gerekebilir:
+
+#### Konteynerlerin Doğru Çalıştırılması:
+```groovy
+sh "docker run -d -p 4444:4444 --name selenium-hub selenium/hub:4.1.0"
+for (int i = 1; i <= params.node_count.toInteger(); i++) {
+    sh "docker run -d --link selenium-hub:hub --name chrome-node-${i} selenium/node-chrome:4.1.0"
+}
+```
+
+Bu komutlar Selenium Hub ve Chrome Node'ları AWS'de başlatacaktır. Ancak **--link** yerine **Docker network** kullanımı önerilir.
+
+### 4. **Web Hook Sonuçları**
+Test sonuçlarını **webhook.site** adresine göndermek için curl komutu AWS EC2 üzerinde sorunsuz çalışacaktır. Ancak bu URL'yi kendi webhook yapılandırmanıza göre güncellemeniz gerekebilir:
+
+```groovy
+sh "curl -X POST -d 'results=Test Completed' https://webhook.site/your-webhook-url"
+```
+
+**Not:** Webhook URL’nizi **webhook.site** veya başka bir servisten alarak buraya yerleştirmelisiniz.
+
+### 5. **DevOps In Test Task İsterleri ile Uyum**
+**"DevOps In Test Task"** dokümanındaki gereksinimlere göre:
+- **Jenkinsfile içinde pipeline adı ve açıklaması** ayarlandı.
+- **Build name** parametresi kullanılarak farklı build adları ayarlanabilir.
+- **Node count parametresi** ile testlerde kaç Chrome Node’un kullanılacağı belirleniyor.
+- **Test sonuçları** webhook.site gibi bir yere gönderiliyor.
+
+Ancak, dokümanda belirtilen **AWS ortamında Jenkins kurulumu** ile ilgili ek ayarlara dikkat etmelisiniz. Jenkins’in EC2 üzerinde sorunsuz çalışması için EC2 instance’ında gerekli izinlerin verilmesi, Python, Docker, Jenkins gibi araçların doğru şekilde kurulması ve yapılandırılması önemlidir.
+
+### Sonuç:
+Bu Jenkinsfile, **AWS EC2 üzerinde çalışmaya uygun olacak şekilde yapılandırılabilir**. Yukarıdaki adımlar EC2 üzerinde çalışan bir Jenkins ile tam uyumlu hale getirilmiştir. Python ve Docker'ın AWS EC2 instance’ınıza doğru şekilde kurulduğundan emin olun, Jenkins kullanıcılarının Docker’a erişim izinlerini kontrol edin ve ardından Jenkins Pipeline'ınızı başlatın.

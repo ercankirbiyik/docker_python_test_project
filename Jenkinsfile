@@ -29,7 +29,7 @@ pipeline {
             steps {
                 script {
                     echo "Sending test results to Webhook"
-                    sh "curl -X POST -d 'results=Test Completed' https://webhook.site/your-webhook-url"
+                    sh "curl -X POST -d 'results=Test Completed' https://webhook.site/5120da85-4b4d-4d06-9fe3-11f5eacfcc93"
                 }
             }
         }

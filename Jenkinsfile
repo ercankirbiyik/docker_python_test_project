@@ -11,7 +11,7 @@ pipeline {
             steps {
                 script {
                     // Python ve pip'in yüklü olup olmadığını kontrol etme
-                    sh 'apt-get update && apt-get install -y python3 python3-pip'
+                    sh 'sudo apt-get update && sudo apt-get install -y python3 python3-pip'
 
                     // Docker Python modülünü yükleme
                     sh 'pip3 install docker'

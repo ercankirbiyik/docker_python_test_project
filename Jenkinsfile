@@ -39,8 +39,8 @@ pipeline {
         always {
             echo "Cleaning up Docker containers"
             sh "docker stop selenium-hub || true"
-            sh "docker stop $(docker ps -a -q --filter 'name=chrome-node-*') || true"
-            sh "docker rm $(docker ps -a -q --filter 'name=chrome-node-*') || true"
+            sh "docker stop \$(docker ps -a -q --filter 'name=chrome-node-*') || true"
+            sh "docker rm \$(docker ps -a -q --filter 'name=chrome-node-*') || true"
             echo "Build completed: ${params.Build_Name}"
         }
     }

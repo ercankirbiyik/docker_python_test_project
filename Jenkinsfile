@@ -7,6 +7,18 @@ pipeline {
     }
 
     stages {
+        stage('Install Python & Docker module') {
+            steps {
+                script {
+                    // Python ve pip'in yüklü olup olmadığını kontrol etme
+                    sh 'sudo apt-get update && sudo apt-get install -y python3 python3-pip'
+
+                    // Docker Python modülünü yükleme
+                    sh 'pip3 install docker'
+                }
+            }
+        }
+
         stage('Prepare Environment') {
             steps {
                 script {
@@ -37,11 +49,23 @@ pipeline {
 
     post {
         always {
-            echo "Cleaning up Docker containers"
-            sh "docker stop selenium-hub || true"
-            sh "docker stop \$(docker ps -a -q --filter 'name=chrome-node-*') || true"
-            sh "docker rm \$(docker ps -a -q --filter 'name=chrome-node-*') || true"
-            echo "Build completed: ${params.Build_Name}"
+            script {
+                echo "Cleaning up Docker containers"
+
+                def seleniumHub = sh(script: "docker ps -a -q --filter 'name=selenium-hub'", returnStdout: true).trim()
+                if (seleniumHub) {
+                    sh "docker stop ${seleniumHub}"
+                    sh "docker rm ${seleniumHub}"
+                }
+
+                def chromeNodes = sh(script: "docker ps -a -q --filter 'name=chrome-node-*'", returnStdout: true).trim()
+                if (chromeNodes) {
+                    sh "docker stop ${chromeNodes}"
+                    sh "docker rm ${chromeNodes}"
+                }
+
+                echo "Build completed: ${params.Build_Name}"
+            }
         }
     }
 }

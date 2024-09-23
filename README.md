@@ -19,7 +19,7 @@ Bu proje, aşağıdaki işlemleri gerçekleştiren bir Python test projesini Doc
 1. **Dockerize Python Test Projesi**: Python test projesi Dockerfile ve docker-compose kullanılarak Dockerize edilmiştir.
 2. **Dockerize Selenium Grid**: Selenium Grid, `selenium/hub` ve `selenium/node-chrome` imajları kullanılarak oluşturulmuştur.
 3. **Python Test Çalıştırma Scripti**: Docker konteynerlerini çalıştırıp testleri node sayısı parametresi ile çalıştıran bir Python scripti yazılmıştır.
-4. **AWS EC2 Üzerinde Jenkins Kurulumu**: AWS EC2'de t2.micro instance üzerinde Jenkins kurulumu yapılmış ve pipeline ile testler otomatik olarak çalıştırılmıştır.
+4. **AWS EC2 Üzerinde Jenkins Kurulumu**: AWS EC2'de t3.micro instance üzerinde Jenkins kurulumu yapılmış ve pipeline ile testler otomatik olarak çalıştırılmıştır.
 5. **Test Sonuçlarının Webhook ile Gönderilmesi**: Test sonuçları, webhook.site gibi bir URL'ye gönderilmektedir.
 
 ---
@@ -53,7 +53,7 @@ python3 run_tests.py <node_count>
 
 
 ### 4.AWS EC2 Üzerinde Jenkins Kurulumu
-- AWS EC2 üzerinde t2.micro instance oluşturun ve aşağıdaki komutları kullanarak Jenkins'i kurun:
+- AWS EC2 üzerinde t3.micro instance oluşturun ve aşağıdaki komutları kullanarak Jenkins'i kurun:
 
 ```bash
 sudo apt update

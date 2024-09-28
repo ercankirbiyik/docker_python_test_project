@@ -2,6 +2,7 @@ import time
 import requests
 import docker
 import subprocess
+import sys
 
 # Selenium Grid'in sağlığını kontrol eden fonksiyon
 def check_grid_health():
@@ -45,7 +46,7 @@ def start_docker_containers(node_count):
                 "SE_EVENT_BUS_SUBSCRIBE_PORT": 4443,
             },
             ports={"5900/tcp": None},  # Her Node için VNC bağlantısı yapılabilir
-            volumes={"/dev/shm": {'bind': '/dev/shm', 'mode': 'rw'}},  # Bu satırı düzelt
+            volumes={"/dev/shm": {'bind': '/dev/shm', 'mode': 'rw'}},
             detach=True
         )
 
@@ -67,8 +68,11 @@ def main(node_count=1):
 
 # Komut satırından gelen node sayısına göre scripti çalıştırma
 if __name__ == "__main__":
-    # 1 ile 5 arasında bir node sayısı belirle
-    node_count = int(input("Kaç tane Chrome Node başlatmak istersiniz (1-5)? "))
+    if len(sys.argv) > 1:
+        node_count = int(sys.argv[1])
+    else:
+        node_count = 1
+
     if 1 <= node_count <= 5:
         main(node_count)
     else:

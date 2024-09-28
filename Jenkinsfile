@@ -62,6 +62,19 @@ pipeline {
                 }
             }
         }
+
+        stage('Clean Old Builds') {
+            steps {
+                script {
+                    echo "Cleaning up old builds, keeping only the last 5..."
+                    // Son 5 build dışındaki tüm build'leri temizleme
+                    sh '''
+                    cd /var/lib/jenkins/jobs/${JOB_NAME}/builds
+                    ls -1t | tail -n +6 | xargs rm -rf
+                    '''
+                }
+            }
+        }
     }
 
     post {

@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'Build_Name', defaultValue: 'Build_Name_1', description: 'Build adını girin')
+        string(name: 'Build_Name', defaultValue: 'qa_manuel', description: 'Build adını girin')
         choice(name: 'node_count', choices: ['1', '2', '3', '4', '5'], description: 'Kaç tane Chrome Node çalıştırmak istersiniz?')
     }
 

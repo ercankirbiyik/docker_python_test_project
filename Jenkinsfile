@@ -10,8 +10,8 @@ pipeline {
         stage('Install Python & Docker module') {
             steps {
                 script {
-                    // Python ve pip'in yüklü olup olmadığını kontrol etme
-                    sh 'sudo apt-get update && sudo apt-get install -y python3 python3-pip'
+                    // Python, pip ve venv modülünün yüklü olup olmadığını kontrol etme
+                    sh 'sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv'
 
                     // Sanal ortam oluşturma
                     echo "Setting up virtual environment"

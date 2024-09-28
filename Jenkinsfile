@@ -43,15 +43,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Send Test Results to Webhook') {
-            steps {
-                script {
-                    echo "Sending test results to Webhook"
-                    sh "curl -X POST -d 'results=Test Completed' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66"
-                }
-            }
-        }
     }
 
     post {
@@ -70,6 +61,19 @@ pipeline {
                     sh "docker stop ${chromeNodes}"
                     sh "docker rm ${chromeNodes}"
                 }
+
+                // Logları webhook'a gönderme
+                def logs = sh(script: "cat /var/log/jenkins/jenkins.log", returnStdout: true).trim()
+                echo "Sending logs and results to Webhook"
+
+                sh """
+                curl -X POST -H 'Content-Type: application/json' -d '{
+                    "build_name": "${params.Build_Name}",
+                    "node_count": "${params.node_count}",
+                    "status": "${currentBuild.result ?: 'SUCCESS'}",
+                    "logs": "${logs.replaceAll('"', '\\"')}"
+                }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
+                """
 
                 echo "Build completed: ${params.Build_Name}"
             }

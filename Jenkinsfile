@@ -60,13 +60,19 @@ pipeline {
     post {
         always {
             script {
-                def status = currentBuild.result ?: 'SUCCESS'
-                if (currentBuild.result == null) {
-                    status = 'SUCCESS'
-                } else {
-                    status = currentBuild.result
+                // Sonucu elde etme
+                def status = 'SUCCESS'
+                if (currentBuild.result == 'FAILURE') {
+                    status = 'FAILURE'
+                } else if (currentBuild.result == 'ABORTED') {
+                    status = 'ABORTED'
+                } else if (currentBuild.result == 'UNSTABLE') {
+                    status = 'UNSTABLE'
+                } else if (currentBuild.result == 'TIMEOUT') {
+                    status = 'TIMEOUT'
                 }
 
+                // Sonuçları webhook'a gönderme
                 echo "Sending test results to Webhook with status: ${status}"
 
                 sh """
@@ -77,6 +83,7 @@ pipeline {
                 }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
                 """
 
+                // Docker konteynerlerini temizleme
                 echo "Cleaning up Docker containers"
 
                 def seleniumHub = sh(script: "docker ps -a -q --filter 'name=selenium-hub'", returnStdout: true).trim()

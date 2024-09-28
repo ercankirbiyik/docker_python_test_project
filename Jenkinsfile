@@ -29,6 +29,16 @@ pipeline {
                 script {
                     echo "Preparing environment for Build: ${params.Build_Name}"
                     echo "Starting ${params.node_count} Chrome Nodes for the test"
+
+                    // Aynı isimdeki konteyneri kaldırma
+                    for (int i = 1; i <= params.node_count.toInteger(); i++) {
+                        def containerId = sh(script: "docker ps -a -q --filter name=chrome-node-${i}", returnStdout: true).trim()
+                        if (containerId) {
+                            echo "Stopping and removing existing chrome-node-${i} container..."
+                            sh "docker stop ${containerId}"
+                            sh "docker rm ${containerId}"
+                        }
+                    }
                 }
             }
         }
@@ -59,19 +69,6 @@ pipeline {
                         "status": "${status}"
                     }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
                     """
-                }
-            }
-        }
-
-        stage('Clean Old Builds') {
-            steps {
-                script {
-                    echo "Cleaning up old builds, keeping only the last 5..."
-                    // Son 5 build dışındaki tüm build'leri temizleme
-                    sh '''
-                    cd /var/lib/jenkins/jobs/${JOB_NAME}/builds
-                    ls -1t | tail -n +6 | xargs rm -rf
-                    '''
                 }
             }
         }

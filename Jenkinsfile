@@ -50,7 +50,15 @@ pipeline {
             steps {
                 script {
                     echo "Sending test results to Webhook"
-                    sh "curl -X POST -d 'results=Test Completed' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66"
+                    def status = currentBuild.result ?: 'SUCCESS'
+
+                    sh """
+                    curl -X POST -H "Content-Type: application/json" -d '{
+                        "build_name": "${params.Build_Name}",
+                        "node_count": "${params.node_count}",
+                        "status": "${status}"
+                    }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
+                    """
                 }
             }
         }
@@ -73,35 +81,7 @@ pipeline {
                     sh "docker rm ${chromeNodes}"
                 }
 
-                // Logları webhook'a gönderme
-                def logs = sh(script: "cat /var/log/jenkins/jenkins.log", returnStdout: true).trim()
-                echo "Sending logs and results to Webhook"
-
-                sh """
-                curl -X POST -H 'Content-Type: application/json' -d '{
-                    "build_name": "${params.Build_Name}",
-                    "node_count": "${params.node_count}",
-                    "status": "${currentBuild.result ?: 'SUCCESS'}",
-                    "logs": "${logs.replaceAll('"', '\\"')}"
-                }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
-                """
-
                 echo "Build completed: ${params.Build_Name}"
-            }
-        }
-
-        failure {
-            script {
-                // Zaman aşımı hatası varsa webhook'a "Timeout" mesajı gönder
-                echo "Test failed due to timeout or another error. Sending timeout error to webhook."
-                sh """
-                curl -X POST -H 'Content-Type: application/json' -d '{
-                    "build_name": "${params.Build_Name}",
-                    "node_count": "${params.node_count}",
-                    "status": "TIMEOUT",
-                    "logs": "Test exceeded 10 minutes and was stopped due to timeout."
-                }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
-                """
             }
         }
     }

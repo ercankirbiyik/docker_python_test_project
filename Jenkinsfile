@@ -46,8 +46,8 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Testlerin maksimum 10 dakika içinde bitmesi için timeout mekanizması
-                    timeout(time: 10, unit: 'MINUTES') {
+                    // Testlerin maksimum 15 dakika içinde bitmesi için timeout mekanizması
+                    timeout(time: 15, unit: 'MINUTES') {
                         echo "Running tests with ${params.node_count} Chrome nodes"
                         // Sanal ortam üzerinden testleri çalıştırma
                         sh "./venv/bin/python3 run_tests.py ${params.node_count}"

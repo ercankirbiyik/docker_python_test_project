@@ -36,10 +36,21 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    echo "Running tests with ${params.node_count} Chrome nodes"
+                    // Testlerin maksimum 10 dakika içinde bitmesi için timeout mekanizması
+                    timeout(time: 10, unit: 'MINUTES') {
+                        echo "Running tests with ${params.node_count} Chrome nodes"
+                        // Sanal ortam üzerinden testleri çalıştırma
+                        sh "./venv/bin/python3 run_tests.py ${params.node_count}"
+                    }
+                }
+            }
+        }
 
-                    // Sanal ortam üzerinden testleri çalıştırma
-                    sh "./venv/bin/python3 run_tests.py ${params.node_count}"
+        stage('Send Test Results to Webhook') {
+            steps {
+                script {
+                    echo "Sending test results to Webhook"
+                    sh "curl -X POST -d 'results=Test Completed' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66"
                 }
             }
         }
@@ -76,6 +87,21 @@ pipeline {
                 """
 
                 echo "Build completed: ${params.Build_Name}"
+            }
+        }
+
+        failure {
+            script {
+                // Zaman aşımı hatası varsa webhook'a "Timeout" mesajı gönder
+                echo "Test failed due to timeout or another error. Sending timeout error to webhook."
+                sh """
+                curl -X POST -H 'Content-Type: application/json' -d '{
+                    "build_name": "${params.Build_Name}",
+                    "node_count": "${params.node_count}",
+                    "status": "TIMEOUT",
+                    "logs": "Test exceeded 10 minutes and was stopped due to timeout."
+                }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
+                """
             }
         }
     }

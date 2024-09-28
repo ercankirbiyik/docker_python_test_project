@@ -13,8 +13,13 @@ pipeline {
                     // Python ve pip'in yüklü olup olmadığını kontrol etme
                     sh 'sudo apt-get update && sudo apt-get install -y python3 python3-pip'
 
-                    // Docker Python modülünü yükleme
-                    sh 'pip3 install docker'
+                    // Sanal ortam oluşturma
+                    echo "Setting up virtual environment"
+                    sh "python3 -m venv venv"
+
+                    // Sanal ortamı aktifleştirip pip'i güncelleme ve docker modülünü yükleme
+                    sh "./venv/bin/pip install --upgrade pip"
+                    sh "./venv/bin/pip install docker"
                 }
             }
         }
@@ -32,7 +37,9 @@ pipeline {
             steps {
                 script {
                     echo "Running tests with ${params.node_count} Chrome nodes"
-                    sh "python3 run_tests.py ${params.node_count}"
+
+                    // Sanal ortam üzerinden testleri çalıştırma
+                    sh "./venv/bin/python3 run_tests.py ${params.node_count}"
                 }
             }
         }

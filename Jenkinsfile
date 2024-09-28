@@ -55,28 +55,28 @@ pipeline {
                 }
             }
         }
-
-        stage('Send Test Results to Webhook') {
-            steps {
-                script {
-                    echo "Sending test results to Webhook"
-                    def status = currentBuild.result ?: 'SUCCESS'
-
-                    sh """
-                    curl -X POST -H "Content-Type: application/json" -d '{
-                        "build_name": "${params.Build_Name}",
-                        "node_count": "${params.node_count}",
-                        "status": "${status}"
-                    }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
-                    """
-                }
-            }
-        }
     }
 
     post {
         always {
             script {
+                def status = currentBuild.result ?: 'SUCCESS'
+                if (currentBuild.result == null) {
+                    status = 'SUCCESS'
+                } else {
+                    status = currentBuild.result
+                }
+
+                echo "Sending test results to Webhook with status: ${status}"
+
+                sh """
+                curl -X POST -H "Content-Type: application/json" -d '{
+                    "build_name": "${params.Build_Name}",
+                    "node_count": "${params.node_count}",
+                    "status": "${status}"
+                }' https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66
+                """
+
                 echo "Cleaning up Docker containers"
 
                 def seleniumHub = sh(script: "docker ps -a -q --filter 'name=selenium-hub'", returnStdout: true).trim()

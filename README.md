@@ -105,7 +105,7 @@ Bu proje sonucunda elde edilen çıktıların listesi:
    * GitHub Projesi (https://github.com/ercankirbiyik/docker_python_test_project)
 
 2. Jenkins URL: Jenkins üzerinden job'ınızı tetiklemek ve izlemek için bir bağlantı.
-   * Jenkins Pipeline URL (http://16.171.148.111:8080/job/python_test_project/)
+   * Jenkins Pipeline URL (http://16.170.224.140:8080/job/python_test_project/)
 
 3. Webhook.site URL: Test sonuçlarını görmek için webhook.site üzerinden sonuçlara ulaşabilirsiniz.
    * Webhook Test Sonuçları (https://webhook.site/b8f12633-2a84-4e1c-9950-a76fa8ab8c66)
